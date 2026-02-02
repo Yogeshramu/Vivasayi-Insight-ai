@@ -28,11 +28,15 @@ export async function GET(request: NextRequest) {
             history
         })
 
-    } catch (error) {
-        console.error('Chat history fetch error:', error)
+    } catch (error: any) {
+        console.error('Chat history fetch error DETAILS:', {
+            message: error.message,
+            stack: error.stack,
+            env: process.env.NODE_ENV
+        })
         return NextResponse.json({
             success: false,
-            error: 'Failed to fetch history'
+            error: `Failed to fetch history: ${error.message}`
         }, { status: 500 })
     }
 }

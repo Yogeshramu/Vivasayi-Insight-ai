@@ -9,12 +9,15 @@ import { authOptions } from "@/lib/auth"
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
+export const dynamic = 'force-dynamic'
+
 function isTamil(text: string): boolean {
   return /[\u0B80-\u0BFF]/.test(text)
 }
 
 async function getWeatherDataForPrompt(location: string) {
   try {
+    console.log(`Fetching weather data for location: ${location}`);
     const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?appid=${process.env.OPENWEATHER_API_KEY}&units=metric&q=${encodeURIComponent(location)}`
     const response = await fetch(weatherUrl)
     if (!response.ok) return null

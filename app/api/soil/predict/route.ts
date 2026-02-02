@@ -6,6 +6,8 @@ import Groq from 'groq-sdk'
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const { temperature, humidity, rainfall, cropType, season, location, language } = await request.json()
@@ -95,11 +97,15 @@ export async function POST(request: NextRequest) {
       }
     })
 
-  } catch (error) {
-    console.error('Soil prediction error:', error)
+  } catch (error: any) {
+    console.error('Chat history fetch error DETAILS:', {
+      message: error.message,
+      stack: error.stack,
+      env: process.env.NODE_ENV
+    })
     return NextResponse.json({
       success: false,
-      error: 'Prediction failed'
+      error: `Failed to fetch history: ${error.message}`
     }, { status: 500 })
   }
 }
