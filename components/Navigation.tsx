@@ -110,8 +110,6 @@ export default function Navigation() {
           )
         })}
       </div>
-      {/* Spacer for bottom nav */}
-      <div className="md:hidden h-16"></div>
     </>
   )
 }

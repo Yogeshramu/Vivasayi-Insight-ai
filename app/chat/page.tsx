@@ -31,6 +31,7 @@ export default function ChatPage() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const recognitionRef = useRef<any>(null)
 
   const playSound = (type: 'start' | 'stop') => {
@@ -198,6 +199,9 @@ export default function ChatPage() {
     const currentImage = selectedImage
 
     setInput('')
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+    }
     baseTextRef.current = ''
     setSelectedImage(null)
     setImagePreview(null)
@@ -301,7 +305,7 @@ export default function ChatPage() {
 
         {/* Chat Area */}
         <div className="lg:col-span-3">
-          <div className="card h-[calc(100vh-140px)] sm:h-[650px] flex flex-col shadow-2xl border-green-100 overflow-hidden p-0 rounded-2xl sm:rounded-3xl">
+          <div className="card h-[calc(100dvh-180px)] sm:h-[650px] flex flex-col shadow-2xl border-green-100 overflow-hidden p-0 rounded-2xl sm:rounded-3xl">
             {/* Header */}
             <div className="flex items-center justify-between p-3 sm:p-4 border-b bg-gradient-to-r from-green-600 to-emerald-600 text-white shrink-0">
               <div className="flex items-center space-x-2">
@@ -377,7 +381,7 @@ export default function ChatPage() {
                   <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-100">
                     <Image src={imagePreview} alt="Preview" fill className="object-cover" />
                   </div>
-                  <button onClick={() => { setSelectedImage(null); setImagePreview(null); }} className="p-1 bg-red-50 text-red-500 rounded-full hover:bg-red-100">
+                  <button onClick={() => { setSelectedImage(null); setImagePreview(null); if (textareaRef.current) textareaRef.current.style.height = 'auto'; }} className="p-1 bg-red-50 text-red-500 rounded-full hover:bg-red-100">
                     <XMarkIcon className="w-4 h-4" />
                   </button>
                 </div>
@@ -400,15 +404,21 @@ export default function ChatPage() {
                 </div>
 
                 <textarea
+                  ref={textareaRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
+                  onInput={(e) => {
+                    const target = e.target as HTMLTextAreaElement;
+                    target.style.height = 'auto';
+                    target.style.height = `${target.scrollHeight}px`;
+                  }}
                   onKeyPress={handleKeyPress}
                   placeholder={
                     isListening
                       ? "தமிழில்..."
                       : (language === 'en' ? "Type advice..." : "கேளுங்கள்...")
                   }
-                  className={`flex-1 border border-gray-100 rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3.5 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none bg-gray-50 text-sm sm:text-base ${language === 'ta' ? 'font-tamil' : ''}`}
+                  className={`flex-1 border border-gray-100 rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3.5 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none bg-gray-50 text-sm sm:text-base ${language === 'ta' ? 'font-tamil' : ''} max-h-32`}
                   rows={1}
                   disabled={isLoading}
                 />

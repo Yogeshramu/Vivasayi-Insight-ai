@@ -22,7 +22,7 @@ export default function RootLayout({
         <AuthProvider>
           <div className="min-h-screen bg-gray-50">
             <Navigation />
-            <main className="container mx-auto px-4 py-8">
+            <main className="container mx-auto px-4 pt-4 pb-24 md:py-8">
               {children}
             </main>
           </div>
