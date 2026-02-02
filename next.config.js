@@ -8,7 +8,7 @@ const nextConfig = {
     return [
       {
         source: '/api/ml/:path*',
-        destination: `${process.env.ML_SERVICE_URL}/:path*`,
+        destination: `${process.env.ML_SERVICE_URL || 'http://localhost:8000'}/:path*`,
       },
     ];
   },
