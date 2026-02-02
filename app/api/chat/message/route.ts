@@ -80,12 +80,17 @@ export async function POST(request: NextRequest) {
       try {
         const bytes = await file.arrayBuffer()
         const buffer = Buffer.from(bytes)
-        const filename = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`
-        const uploadDir = join(process.cwd(), 'public/uploads')
-        await mkdir(uploadDir, { recursive: true })
-        const filepath = join(uploadDir, filename)
-        await writeFile(filepath, buffer)
-        savedImagePath = `/uploads/${filename}`
+        if (process.env.VERCEL) {
+          console.log("Running on Vercel, skipping local file save for chat image.");
+          savedImagePath = ""; // On Vercel, we rely on the base64 data for AI, and don't store locally
+        } else {
+          const filename = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`
+          const uploadDir = join(process.cwd(), 'public/uploads')
+          await mkdir(uploadDir, { recursive: true })
+          const filepath = join(uploadDir, filename)
+          await writeFile(filepath, buffer)
+          savedImagePath = `/uploads/${filename}`
+        }
       } catch (e) {
         console.error("Image saving error:", e)
       }
@@ -173,4 +178,8 @@ export async function POST(request: NextRequest) {
     console.error('Chat API error:', error)
     return NextResponse.json({ success: false, error: 'Request failed' }, { status: 500 })
   }
+}
+
+export async function GET() {
+  return NextResponse.json({ status: 'Chat API is active' })
 }

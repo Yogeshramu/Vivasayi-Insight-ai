@@ -8,6 +8,8 @@ import Groq from 'groq-sdk'
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
@@ -27,9 +29,15 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
     const filename = `crop_${Date.now()}_${file.name.replace(/\s+/g, '_')}`
-    const filepath = join(uploadDir, filename)
 
-    await writeFile(filepath, buffer)
+    if (process.env.VERCEL) {
+      console.log("Running on Vercel, skipping local file save for crop image.")
+    } else {
+      const uploadDir = join(process.cwd(), 'public/uploads')
+      await mkdir(uploadDir, { recursive: true })
+      const filepath = join(uploadDir, filename)
+      await writeFile(filepath, buffer)
+    }
 
     const session = await getServerSession(authOptions)
 
