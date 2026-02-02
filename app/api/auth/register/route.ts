@@ -31,16 +31,25 @@ export async function POST(request: Request) {
         }
 
         // Check for existing user
-        const existingUser = await prisma.user.findFirst({
-            where: {
-                OR: [
-                    { email },
-                    ...(phone ? [{ phone }] : [])
-                ]
-            }
-        });
+        console.log(`[Register] Checking if user exists: ${email}, ${phone}`);
+        let existingUser;
+        try {
+            existingUser = await prisma.user.findFirst({
+                where: {
+                    OR: [
+                        { email },
+                        ...(phone ? [{ phone }] : [])
+                    ]
+                }
+            });
+            console.log("[Register] User check complete.");
+        } catch (dbError: any) {
+            console.error("[Register] DB Error during user lookup:", dbError);
+            throw new Error(`Database connection failed during user check: ${dbError.message}`);
+        }
 
         if (existingUser) {
+            console.log("[Register] User already exists.");
             return new NextResponse("Account already exists with this email or phone number.", { status: 400 });
         }
 

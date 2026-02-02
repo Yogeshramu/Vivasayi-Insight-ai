@@ -1,30 +1,53 @@
-import { NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
-        // 1. Check if we can reach the database
-        const userCount = await prisma.user.count()
+        console.log("Testing DB Connection...");
+
+        // Log Environment (Safe)
+        const dbUrl = process.env.DATABASE_URL;
+        const directUrl = process.env.DIRECT_URL;
+
+        console.log("DB URL Configured:", !!dbUrl);
+        console.log("Direct URL Configured:", !!directUrl);
+
+        if (dbUrl) {
+            // Show protocol, host, port, and query params (masking credentials)
+            const sanitizedDbUrl = dbUrl.replace(/\/\/.*@/, '//***:***@');
+            console.log("Sanitized DATABASE_URL:", sanitizedDbUrl);
+        }
+
+        // Attempt simple query
+        const startTime = Date.now();
+        const count = await prisma.user.count();
+        const duration = Date.now() - startTime;
+
+        console.log(`DB Connection Successful. User count: ${count}. Duration: ${duration}ms`);
 
         return NextResponse.json({
             success: true,
-            message: "Database connection successful",
-            data: {
-                userCount,
-                env: process.env.NODE_ENV,
-                db_host: process.env.DATABASE_URL?.split('@')[1]?.split(':')[0] || 'hidden'
+            message: 'Database connected successfully',
+            userCount: count,
+            duration,
+            envCheck: {
+                hasDbUrl: !!process.env.DATABASE_URL,
+                hasDirectUrl: !!process.env.DIRECT_URL
             }
-        })
+        });
     } catch (error: any) {
-        console.error('Database connection test failed:', error)
+        console.error("DB Connection Test Failed:", error);
+
         return NextResponse.json({
             success: false,
-            message: "Database connection failed",
             error: error.message,
-            code: error.code,
-            meta: error.meta
-        }, { status: 500 })
+            stack: error.stack,
+            envCheck: {
+                hasDbUrl: !!process.env.DATABASE_URL,
+                hasDirectUrl: !!process.env.DIRECT_URL
+            }
+        }, { status: 500 });
     }
 }
