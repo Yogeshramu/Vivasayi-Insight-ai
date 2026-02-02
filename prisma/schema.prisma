@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  phone         String?   @unique
+  language      String    @default("en") // "en" or "ta"
+  location      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  chatSessions        ChatSession[]
+  cropAnalyses        CropAnalysis[]
+  soilPredictions     SoilPrediction[]
+  weatherRecommendations WeatherRecommendation[]
+
+  @@map("users")
+}
+
+model ChatSession {
+  id        String   @id @default(cuid())
+  userId    String
+  messages  Json[]   // Array of {role: "user"|"assistant", content: string, timestamp: DateTime}
+  language  String   @default("en")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("chat_sessions")
+}
+
+model CropAnalysis {
+  id          String   @id @default(cuid())
+  userId      String
+  imagePath   String
+  disease     String?
+  confidence  Float?
+  treatment   String?
+  language    String   @default("en")
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("crop_analyses")
+}
+
+model SoilPrediction {
+  id            String   @id @default(cuid())
+  userId        String
+  temperature   Float
+  humidity      Float
+  rainfall      Float
+  cropType      String
+  season        String
+  predictedMoisture Float
+  recommendation String?
+  language      String   @default("en")
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("soil_predictions")
+}
+
+model WeatherRecommendation {
+  id            String   @id @default(cuid())
+  userId        String
+  location      String
+  weatherData   Json     // Current weather from API
+  recommendation String
+  language      String   @default("en")
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("weather_recommendations")
+}

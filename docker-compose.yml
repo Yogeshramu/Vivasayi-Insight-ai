@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: farm_ai_db
+    restart: always
+    environment:
+      POSTGRES_USER: farm_user
+      POSTGRES_PASSWORD: farm_pass
+      POSTGRES_DB: farm_ai_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
