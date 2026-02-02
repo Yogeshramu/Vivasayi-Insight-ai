@@ -21,9 +21,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'No image file provided' })
     }
 
-    // Ensure uploads directory exists
-    const uploadDir = join(process.cwd(), 'public/uploads')
-    await mkdir(uploadDir, { recursive: true })
+    // Check for Vercel environment before attempting file operations
 
     // Save uploaded image
     const bytes = await file.arrayBuffer()
@@ -107,11 +105,17 @@ export async function POST(request: NextRequest) {
       }).catch(e => { })
     }
 
+    // Determine appropriate image path for response
+    // On Vercel, we can't serve the file we just accepted (readonly fs), so we return a data URI
+    const responseImagePath = process.env.VERCEL
+      ? `data:${file.type};base64,${buffer.toString('base64')}`
+      : `/uploads/${filename}`;
+
     return NextResponse.json({
       success: true,
       result: {
         ...analysis,
-        imagePath: `/uploads/${filename}`
+        imagePath: responseImagePath
       }
     })
 
