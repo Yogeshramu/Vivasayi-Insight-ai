@@ -279,19 +279,19 @@ export default function ChatPage() {
   if (!hasLoaded) return null
 
   return (
-    <div className="max-w-6xl mx-auto px-4">
-      <div className="grid lg:grid-cols-4 gap-6">
+    <div className="max-w-6xl mx-auto px-1 sm:px-4">
+      <div className="flex flex-col lg:grid lg:grid-cols-4 gap-6">
         {/* History Sidebar */}
         <div className="hidden lg:block space-y-4">
-          <div className="card p-4 h-[650px] flex flex-col">
+          <div className="card p-4 h-[calc(100vh-160px)] flex flex-col sticky top-20">
             <h2 className="font-semibold mb-3 flex items-center text-green-700">
               <LanguageIcon className="w-5 h-5 mr-2" />
               Recent History
             </h2>
-            <div className="space-y-2 flex-1 overflow-y-auto pr-2">
+            <div className="space-y-2 flex-1 overflow-y-auto pr-2 custom-scrollbar text-sm">
               {history.length > 0 ? history.map((session) => (
-                <div key={session.id} className="p-2 hover:bg-green-50 rounded-lg cursor-pointer border-b border-gray-100 text-xs transition-colors">
-                  <p className="text-gray-400 mb-1">{new Date(session.createdAt).toLocaleDateString()}</p>
+                <div key={session.id} className="p-2 hover:bg-green-50 rounded-lg cursor-pointer border-b border-gray-50 transition-colors">
+                  <p className="text-[10px] text-gray-400 mb-1">{new Date(session.createdAt).toLocaleDateString()}</p>
                   <p className="truncate font-medium text-gray-700">{session.messages[0]?.content || "Image Analysis"}</p>
                 </div>
               )) : <p className="text-sm text-gray-400 text-center py-10">No chats yet</p>}
@@ -301,27 +301,29 @@ export default function ChatPage() {
 
         {/* Chat Area */}
         <div className="lg:col-span-3">
-          <div className="card h-[650px] flex flex-col shadow-2xl border-green-100 overflow-hidden">
+          <div className="card h-[calc(100vh-140px)] sm:h-[650px] flex flex-col shadow-2xl border-green-100 overflow-hidden p-0 rounded-2xl sm:rounded-3xl">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-green-600 to-emerald-600 text-white">
-              <div>
-                <h1 className="text-xl font-bold flex items-center">
-                  <span className="bg-white text-green-600 px-2 py-0.5 rounded-lg mr-2 text-sm uppercase">AI</span>
-                  Farmer Advisor
-                </h1>
-                <p className="text-[10px] opacity-80 uppercase tracking-wider">Dynamic Assistant • {language === 'ta' ? 'தமிழ்' : 'English'}</p>
+            <div className="flex items-center justify-between p-3 sm:p-4 border-b bg-gradient-to-r from-green-600 to-emerald-600 text-white shrink-0">
+              <div className="flex items-center space-x-2">
+                <div className="bg-white text-green-600 px-1.5 py-0.5 rounded text-[10px] font-black uppercase">AI</div>
+                <div>
+                  <h1 className="text-sm sm:text-lg font-bold truncate max-w-[120px] sm:max-w-none">
+                    Farmer Advisor
+                  </h1>
+                </div>
               </div>
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-1.5 sm:space-x-3">
                 <button
                   onClick={fetchUserLocation}
-                  className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs transition-all ${location ? 'bg-white/20 border border-white/30' : 'bg-yellow-400 text-black font-bold animate-pulse'}`}
+                  className={`flex items-center space-x-1 px-2 py-1 rounded-full text-[10px] sm:text-xs transition-all ${location ? 'bg-white/20 border border-white/30' : 'bg-yellow-400 text-black font-bold animate-pulse'}`}
                 >
-                  <MapPinIcon className="w-4 h-4" />
-                  <span>{location || 'Set GPS'}</span>
+                  <MapPinIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden xs:inline">{location || 'Set GPS'}</span>
+                  {!location && <span className="xs:hidden">GPS</span>}
                 </button>
                 <button
                   onClick={() => setLanguage(language === 'en' ? 'ta' : 'en')}
-                  className="px-3 py-1 bg-white/20 border border-white/30 rounded-full text-xs hover:bg-white/30 transition-colors font-bold uppercase"
+                  className="px-2 py-1 bg-white/20 border border-white/30 rounded-full text-[10px] sm:text-xs hover:bg-white/30 transition-colors font-bold uppercase"
                 >
                   {language === 'en' ? 'தமிழ்' : 'English'}
                 </button>
@@ -329,26 +331,26 @@ export default function ChatPage() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50/50">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6 bg-gray-50/50 custom-scrollbar">
               {messages.map((message, index) => (
                 <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] space-y-2`}>
-                    <div className={`px-4 py-3 rounded-2xl shadow-sm ${message.role === 'user'
+                  <div className={`max-w-[90%] sm:max-w-[85%] space-y-1`}>
+                    <div className={`px-3 py-2 sm:px-4 sm:py-3 rounded-2xl shadow-sm ${message.role === 'user'
                       ? 'bg-green-600 text-white rounded-br-none ml-auto'
                       : 'bg-white border border-gray-100 text-gray-800 rounded-bl-none'
                       }`}>
                       {message.image && (
                         <div className="mb-2 rounded-lg overflow-hidden border border-white/20">
-                          <Image src={message.image} alt="Uploaded crop" width={200} height={150} className="w-full h-auto" />
+                          <Image src={message.image} alt="Uploaded crop" width={200} height={150} className="w-full h-auto object-cover max-h-[200px]" />
                         </div>
                       )}
-                      <div className={`text-sm leading-relaxed markdown-content ${message.role === 'user' ? 'text-white' : 'text-gray-800'} ${message.language === 'ta' ? 'font-tamil' : ''}`}>
+                      <div className={`text-sm sm:text-base leading-relaxed markdown-content ${message.role === 'user' ? 'text-white' : 'text-gray-800'} ${message.language === 'ta' ? 'font-tamil' : ''}`}>
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
                           {message.content}
                         </ReactMarkdown>
                       </div>
-                      <p className={`text-[9px] mt-1 opacity-60 text-right`} suppressHydrationWarning>
-                        {message.timestamp.toLocaleTimeString()}
+                      <p className={`text-[8px] sm:text-[9px] mt-1 opacity-60 text-right`} suppressHydrationWarning>
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   </div>
@@ -356,13 +358,12 @@ export default function ChatPage() {
               ))}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-white border border-green-100 rounded-2xl px-5 py-3 shadow-sm flex items-center space-x-3">
+                  <div className="bg-white border border-green-100 rounded-2xl px-4 py-2 shadow-sm flex items-center space-x-3">
                     <div className="flex space-x-1">
                       <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-bounce"></div>
                       <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-bounce [animation-delay:0.2s]"></div>
                       <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-bounce [animation-delay:0.4s]"></div>
                     </div>
-                    <span className="text-[10px] text-gray-400 font-medium uppercase tracking-widest">Analyzing...</span>
                   </div>
                 </div>
               )}
@@ -370,37 +371,31 @@ export default function ChatPage() {
             </div>
 
             {/* Input Form */}
-            <div className="p-4 border-t bg-white relative">
+            <div className="p-2 sm:p-4 border-t bg-white relative shrink-0">
               {imagePreview && (
-                <div className="absolute bottom-full left-4 mb-2 p-2 bg-white border border-green-200 rounded-xl shadow-xl flex items-center space-x-2">
-                  <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-100">
+                <div className="absolute bottom-full left-2 sm:left-4 mb-2 p-2 bg-white border border-green-200 rounded-xl shadow-xl flex items-center space-x-2 z-10">
+                  <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-100">
                     <Image src={imagePreview} alt="Preview" fill className="object-cover" />
                   </div>
                   <button onClick={() => { setSelectedImage(null); setImagePreview(null); }} className="p-1 bg-red-50 text-red-500 rounded-full hover:bg-red-100">
                     <XMarkIcon className="w-4 h-4" />
                   </button>
-                  <span className="text-[10px] font-bold text-green-600 uppercase pr-2">Crop Photo Attached</span>
                 </div>
               )}
 
-              <div className="flex space-x-2 items-end">
-                <div className="flex space-x-1 items-center bg-gray-50 rounded-2xl p-1 px-2 border border-gray-100">
-                  <button onClick={() => fileInputRef.current?.click()} className="p-2 text-gray-500 hover:text-green-600 transition-colors">
-                    <PhotoIcon className="w-6 h-6" />
+              <div className="flex space-x-2 items-center sm:items-end">
+                <div className="flex space-x-0.5 sm:space-x-1 items-center bg-gray-50 rounded-2xl p-1 border border-gray-100">
+                  <button onClick={() => fileInputRef.current?.click()} className="p-1.5 sm:p-2 text-gray-500 hover:text-green-600 transition-colors">
+                    <PhotoIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                   </button>
                   <button
                     onClick={toggleListening}
-                    className={`p-2 transition-all rounded-full relative group ${isListening ? 'text-red-600 bg-red-100' : 'text-gray-500 hover:text-green-600'}`}
+                    className={`p-1.5 sm:p-2 transition-all rounded-full relative ${isListening ? 'text-red-600 bg-red-100' : 'text-gray-500 hover:text-green-600'}`}
                   >
                     {isListening && (
-                      <span className="absolute inset-0 rounded-full bg-red-400 animate-ping opacity-25"></span>
+                      <span className="absolute inset-0 rounded-full bg-red-400 animate-ping opacity-25 font-bold"></span>
                     )}
-                    <MicrophoneIcon className={`w-6 h-6 relative z-10 ${isListening ? 'scale-110' : ''}`} />
-                    {!isListening && (
-                      <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                        Start Tamil Voice
-                      </span>
-                    )}
+                    <MicrophoneIcon className={`w-5 h-5 sm:w-6 h-6 sm:h-6 relative z-10 ${isListening ? 'scale-110' : ''}`} />
                   </button>
                 </div>
 
@@ -410,17 +405,17 @@ export default function ChatPage() {
                   onKeyPress={handleKeyPress}
                   placeholder={
                     isListening
-                      ? "தமிழில் கேட்கிறேன்..."
-                      : (language === 'en' ? "Describe your crop issues or upload a photo..." : "உங்கள் பயிர் பிரச்சினைகளை விளக்குங்கள் அல்லது புகைப்படத்தை பதிவேற்றவும்...")
+                      ? "தமிழில்..."
+                      : (language === 'en' ? "Type advice..." : "கேளுங்கள்...")
                   }
-                  className={`flex-1 border border-gray-100 rounded-2xl px-4 py-3.5 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none bg-gray-50 text-sm ${language === 'ta' ? 'font-tamil' : ''} ${isListening ? 'placeholder-green-600 animate-pulse' : ''}`}
+                  className={`flex-1 border border-gray-100 rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3.5 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none bg-gray-50 text-sm sm:text-base ${language === 'ta' ? 'font-tamil' : ''}`}
                   rows={1}
                   disabled={isLoading}
                 />
 
                 <input type="file" ref={fileInputRef} onChange={handleImageSelect} accept="image/*" className="hidden" />
 
-                <button onClick={sendMessage} disabled={(!input.trim() && !selectedImage) || isLoading} className="bg-green-600 text-white p-3.5 rounded-2xl hover:bg-green-700 transition-all shadow-lg active:scale-95 disabled:bg-gray-200">
+                <button onClick={sendMessage} disabled={(!input.trim() && !selectedImage) || isLoading} className="bg-green-600 text-white p-3 rounded-2xl hover:bg-green-700 transition-all shadow-lg active:scale-95 disabled:bg-gray-200 shrink-0">
                   <PaperAirplaneIcon className="w-5 h-5" />
                 </button>
               </div>

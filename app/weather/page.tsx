@@ -104,29 +104,29 @@ export default function WeatherPage() {
       </div>
 
       {/* Location Input */}
-      <div className="card mb-8">
-        <div className="flex flex-col sm:flex-row gap-4">
+      <div className="card mb-8 p-4 sm:p-6">
+        <div className="flex flex-col gap-4">
           <input
             type="text"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            placeholder={language === 'en' ? "Enter your location (e.g., Chennai, Tamil Nadu)" : "உங்கள் இடத்தை உள்ளிடவும்"}
-            className="flex-1 input-field"
+            placeholder={language === 'en' ? "Enter your location (e.g., Chennai)" : "உங்கள் இடத்தை உள்ளிடவும்"}
+            className="w-full input-field"
             onKeyPress={(e) => e.key === 'Enter' && fetchWeatherByLocation()}
           />
-          <div className="flex space-x-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <button
               onClick={getCurrentLocation}
-              className="btn-secondary whitespace-nowrap"
+              className="btn-secondary w-full text-sm py-2.5"
             >
-              Use Current Location
+              Use My Location
             </button>
             <button
               onClick={fetchWeatherByLocation}
               disabled={isLoading || !location.trim()}
-              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              className="btn-primary w-full text-sm py-2.5 disabled:opacity-50"
             >
-              {isLoading ? 'Loading...' : 'Get Weather'}
+              {isLoading ? 'Loading...' : 'Get Weather Predictions'}
             </button>
           </div>
         </div>
@@ -135,33 +135,33 @@ export default function WeatherPage() {
       {weather && (
         <>
           {/* Current Weather */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="card text-center">
-              <SunIcon className="w-12 h-12 text-orange-500 mx-auto mb-3" />
-              <h3 className="text-lg font-semibold text-gray-900">Temperature</h3>
-              <p className="text-2xl font-bold text-orange-600">{weather.temperature}°C</p>
-              <p className="text-sm text-gray-500 capitalize">{weather.description}</p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+            <div className="card text-center p-4">
+              <SunIcon className="w-8 h-8 sm:w-12 sm:h-12 text-orange-500 mx-auto mb-2 sm:mb-3" />
+              <h3 className="text-sm sm:text-lg font-semibold text-gray-900 leading-tight">Temp</h3>
+              <p className="text-xl sm:text-2xl font-bold text-orange-600">{weather.temperature}°C</p>
+              <p className="text-[10px] sm:text-sm text-gray-500 capitalize truncate">{weather.description}</p>
             </div>
 
-            <div className="card text-center">
-              <EyeDropperIcon className="w-12 h-12 text-blue-500 mx-auto mb-3" />
-              <h3 className="text-lg font-semibold text-gray-900">Humidity</h3>
-              <p className="text-2xl font-bold text-blue-600">{weather.humidity}%</p>
-              <p className="text-sm text-gray-500">Moisture in air</p>
+            <div className="card text-center p-4">
+              <EyeDropperIcon className="w-8 h-8 sm:w-12 sm:h-12 text-blue-500 mx-auto mb-2 sm:mb-3" />
+              <h3 className="text-sm sm:text-lg font-semibold text-gray-900 leading-tight">Humidity</h3>
+              <p className="text-xl sm:text-2xl font-bold text-blue-600">{weather.humidity}%</p>
+              <p className="text-[10px] sm:text-sm text-gray-500">Air moisture</p>
             </div>
 
-            <div className="card text-center">
-              <ArrowPathIcon className="w-12 h-12 text-gray-500 mx-auto mb-3" />
-              <h3 className="text-lg font-semibold text-gray-900">Wind Speed</h3>
-              <p className="text-2xl font-bold text-gray-600">{weather.windSpeed} m/s</p>
-              <p className="text-sm text-gray-500">Current wind</p>
+            <div className="card text-center p-4">
+              <ArrowPathIcon className="w-8 h-8 sm:w-12 sm:h-12 text-gray-500 mx-auto mb-2 sm:mb-3" />
+              <h3 className="text-sm sm:text-lg font-semibold text-gray-900 leading-tight">Wind</h3>
+              <p className="text-xl sm:text-2xl font-bold text-gray-600">{weather.windSpeed}m/s</p>
+              <p className="text-[10px] sm:text-sm text-gray-500">Speed</p>
             </div>
 
-            <div className="card text-center">
-              <CloudIcon className="w-12 h-12 text-purple-500 mx-auto mb-3" />
-              <h3 className="text-lg font-semibold text-gray-900">Pressure</h3>
-              <p className="text-2xl font-bold text-purple-600">{weather.pressure} hPa</p>
-              <p className="text-sm text-gray-500">Atmospheric pressure</p>
+            <div className="card text-center p-4">
+              <CloudIcon className="w-8 h-8 sm:w-12 sm:h-12 text-purple-500 mx-auto mb-2 sm:mb-3" />
+              <h3 className="text-sm sm:text-lg font-semibold text-gray-900 leading-tight">Pressure</h3>
+              <p className="text-xl sm:text-2xl font-bold text-purple-600 truncate">{weather.pressure}</p>
+              <p className="text-[10px] sm:text-sm text-gray-500">hPa</p>
             </div>
           </div>
 

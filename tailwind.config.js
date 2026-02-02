@@ -20,6 +20,9 @@ module.exports = {
           600: '#ca8a04',
         }
       },
+      screens: {
+        'xs': '400px',
+      },
       fontFamily: {
         tamil: ['Noto Sans Tamil', 'sans-serif'],
       }
