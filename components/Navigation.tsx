@@ -2,116 +2,147 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { HomeIcon, ChatBubbleLeftRightIcon, CameraIcon, BeakerIcon, CloudIcon, ArrowRightOnRectangleIcon, UserIcon } from '@heroicons/react/24/outline'
+import {
+  HomeIcon, ChatBubbleLeftRightIcon, CameraIcon,
+  BeakerIcon, CloudIcon, ArrowRightOnRectangleIcon, UserCircleIcon
+} from '@heroicons/react/24/outline'
+import {
+  HomeIcon as HomeSolid, ChatBubbleLeftRightIcon as ChatSolid,
+  CameraIcon as CameraSolid, BeakerIcon as BeakerSolid, CloudIcon as CloudSolid
+} from '@heroicons/react/24/solid'
 import { useSession, signOut } from 'next-auth/react'
+import { useState } from 'react'
+
+const navItems = [
+  { href: '/',                label: 'Home',    icon: HomeIcon,                  iconSolid: HomeSolid },
+  { href: '/chat',            label: 'Chat',    icon: ChatBubbleLeftRightIcon,   iconSolid: ChatSolid },
+  { href: '/crop-analysis',   label: 'Leaf',    icon: CameraIcon,                iconSolid: CameraSolid },
+  { href: '/soil-prediction', label: 'Soil',    icon: BeakerIcon,                iconSolid: BeakerSolid },
+  { href: '/weather',         label: 'Weather', icon: CloudIcon,                 iconSolid: CloudSolid },
+]
 
 export default function Navigation() {
   const pathname = usePathname()
   const { data: session } = useSession()
-
-  const navItems = [
-    { href: '/', label: 'Home', labelTamil: 'முகப்பு', icon: HomeIcon },
-    { href: '/chat', label: 'Chat', labelTamil: 'அரட்டை', icon: ChatBubbleLeftRightIcon },
-    { href: '/crop-analysis', label: 'Crop', labelTamil: 'பயிர்', icon: CameraIcon },
-    { href: '/soil-prediction', label: 'Soil', labelTamil: 'மண்', icon: BeakerIcon },
-    { href: '/weather', label: 'Weather', labelTamil: 'வானிலை', icon: CloudIcon },
-  ]
+  const [dropdownOpen, setDropdownOpen] = useState(false)
 
   return (
     <>
-      <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center space-x-2 shrink-0">
-              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">AI</span>
-              </div>
-              <span className="font-semibold text-gray-900 hidden xs:block">Farmer Support</span>
-            </Link>
+      {/* Top Navbar */}
+      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex space-x-1">
-              {navItems.map((item) => {
-                const Icon = item.icon
-                const isActive = pathname === item.href
-
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`flex flex-col items-center px-3 py-1 rounded-lg text-[10px] transition-colors ${isActive
-                      ? 'bg-primary-50 text-primary-600'
-                      : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
-                      }`}
-                  >
-                    <Icon className="w-5 h-5 mb-0.5" />
-                    <span>{item.label}</span>
-                    <span className="font-tamil opacity-75">{item.labelTamil}</span>
-                  </Link>
-                )
-              })}
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-3 shrink-0 group">
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center shadow-md group-hover:shadow-primary-500/30 transition-shadow">
+              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3C7 3 3 7.5 3 12s4 9 9 9 9-4 9-9c0-1-.2-2-.5-3M15 5l2 2-2 2M17 7h4" />
+              </svg>
             </div>
+            <div className="hidden sm:block leading-tight">
+              <p className="font-bold text-gray-900 text-[15px]">AgriPulse <span className="text-primary-600">AI</span></p>
+              <p className="text-[10px] text-gray-400 font-tamil">விவசாய உதவியாளர்</p>
+            </div>
+          </Link>
 
-            <div className="flex items-center space-x-2 sm:border-l sm:pl-4 sm:ml-4">
-              {session ? (
-                <div className="flex items-center space-x-3">
-                  <div className="text-right hidden sm:block">
-                    <p className="text-sm font-medium text-gray-900 truncate max-w-[100px]">{session.user?.name || 'Farmer User'}</p>
+          {/* Desktop Nav Pills */}
+          <div className="hidden md:flex items-center bg-gray-100/80 rounded-2xl p-1 gap-0.5">
+            {navItems.map(({ href, label, icon: Icon, iconSolid: IconSolid }) => {
+              const isActive = pathname === href
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  scroll={false}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                    isActive
+                      ? 'bg-white text-primary-700 shadow-sm shadow-gray-200'
+                      : 'text-gray-500 hover:text-gray-800 hover:bg-white/60'
+                  }`}
+                >
+                  {isActive
+                    ? <IconSolid className="w-4 h-4 text-primary-600" />
+                    : <Icon className="w-4 h-4" />
+                  }
+                  {label}
+                </Link>
+              )
+            })}
+          </div>
+
+          {/* Auth */}
+          <div className="flex items-center gap-2 shrink-0">
+            {session ? (
+              <div className="relative">
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-gray-100 transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-primary-100 flex items-center justify-center">
+                    <UserCircleIcon className="w-5 h-5 text-primary-700" />
+                  </div>
+                  <span className="hidden sm:block text-sm font-medium text-gray-700 max-w-[100px] truncate">
+                    {session.user?.name?.split(' ')[0] || 'Farmer'}
+                  </span>
+                  <svg className="w-4 h-4 text-gray-400 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </button>
+
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50">
+                    <div className="px-4 py-2 border-b border-gray-100">
+                      <p className="text-sm font-semibold text-gray-800 truncate">{session.user?.name}</p>
+                      <p className="text-xs text-gray-400 truncate">{session.user?.email}</p>
+                    </div>
                     <button
                       onClick={() => signOut({ callbackUrl: '/' })}
-                      className="text-xs text-red-600 hover:underline flex items-center justify-end"
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors mt-1"
                     >
-                      Logout
+                      <ArrowRightOnRectangleIcon className="w-4 h-4" />
+                      Sign out
                     </button>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 shrink-0">
-                    <UserIcon className="w-5 h-5" />
-                  </div>
-                  <button
-                    onClick={() => signOut({ callbackUrl: '/' })}
-                    className="sm:hidden text-gray-600 p-1"
-                    title="Logout"
-                  >
-                    <ArrowRightOnRectangleIcon className="w-5 h-5" />
-                  </button>
-                </div>
-              ) : (
-                <Link
-                  href="/login"
-                  className="flex items-center space-x-1 px-3 py-2 rounded-lg text-sm text-gray-600 hover:text-primary-600 hover:bg-gray-50"
-                >
-                  <ArrowRightOnRectangleIcon className="w-5 h-5" />
-                  <span className="hidden xs:block">Login</span>
-                </Link>
-              )}
-            </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold transition-colors shadow-sm shadow-primary-500/20"
+              >
+                <ArrowRightOnRectangleIcon className="w-4 h-4" />
+                <span>Login</span>
+              </Link>
+            )}
           </div>
+
         </div>
       </nav>
 
-      {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t z-50 px-2 py-1 pb-safe flex justify-around shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-        {navItems.map((item) => {
-          const Icon = item.icon
-          const isActive = pathname === item.href
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex flex-col items-center p-2 rounded-lg transition-colors ${isActive
-                ? 'text-primary-600'
-                : 'text-gray-500'
-                }`}
-            >
-              <Icon className="w-6 h-6" />
-              <span className="text-[10px] mt-1">{item.label}</span>
-            </Link>
-          )
-        })}
+      {/* Mobile Bottom Nav */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-t border-gray-200/60 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+        <div className="flex justify-around items-center px-2 py-2">
+          {navItems.map(({ href, label, icon: Icon, iconSolid: IconSolid }) => {
+            const isActive = pathname === href
+            return (
+              <Link
+                key={href}
+                href={href}
+                scroll={false}
+                className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all"
+              >
+                <div className={`p-1.5 rounded-xl transition-all ${isActive ? 'bg-primary-100' : ''}`}>
+                  {isActive
+                    ? <IconSolid className="w-5 h-5 text-primary-600" />
+                    : <Icon className="w-5 h-5 text-gray-400" />
+                  }
+                </div>
+                <span className={`text-[10px] font-medium ${isActive ? 'text-primary-600' : 'text-gray-400'}`}>
+                  {label}
+                </span>
+              </Link>
+            )
+          })}
+        </div>
       </div>
-      {/* Spacer for bottom nav */}
-      <div className="md:hidden h-16"></div>
     </>
   )
 }

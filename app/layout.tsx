@@ -1,7 +1,7 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
 import Navigation from '@/components/Navigation'
-
+import Footer from '@/components/Footer'
 import AuthProvider from '@/components/AuthProvider'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -21,9 +21,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           <div className="min-h-screen bg-gray-50 flex flex-col">
-            <main className="flex-1 flex flex-col">
+            <Navigation />
+            <main className="container mx-auto px-4 pt-4 pb-8 md:py-6 flex-1">
               {children}
             </main>
+            <Footer />
           </div>
         </AuthProvider>
       </body>
