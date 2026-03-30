@@ -46,6 +46,7 @@ export default function ChatPage() {
   const currentSessionIdRef = useRef<string | null>(null)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const recognitionRef = useRef<any>(null)
@@ -55,7 +56,8 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (skipScrollRef.current) { skipScrollRef.current = false; return }
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const container = messagesContainerRef.current
+    if (container) container.scrollTop = container.scrollHeight
   }, [messages])
 
   useEffect(() => { if (session) fetchHistory() }, [session])
@@ -196,7 +198,7 @@ export default function ChatPage() {
   })).filter(g => g.chats.length > 0)
 
   return (
-    <div className="flex h-[calc(100dvh-64px)] md:h-[600px] overflow-hidden -mx-4 -mt-4 md:mx-0 md:mt-0 md:rounded-2xl md:shadow-2xl md:border md:border-gray-800/20">
+    <div className="flex overflow-hidden -mx-4 -mt-4 md:mx-auto md:mt-0 md:mb-0 md:rounded-2xl md:shadow-2xl md:border md:border-gray-200 md:max-w-5xl" style={{ height: 'calc(100dvh - 64px)', maxHeight: '680px' }}>
 
       {/* ── DARK SIDEBAR ── */}
       <aside className={`
@@ -316,7 +318,7 @@ export default function ChatPage() {
         </div>
 
         {/* Messages — centered like ChatGPT */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar">
+        <div ref={messagesContainerRef} className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
             {messages.map((msg, i) => (
               <div key={i} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
