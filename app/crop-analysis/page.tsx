@@ -88,7 +88,7 @@ export default function CropAnalysisPage() {
   return (
     <div className="max-w-6xl mx-auto px-4">
       <div className="text-center mb-10">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">Crop Disease Analysis</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">Leaf Disease Analysis</h1>
         <p className="text-lg text-gray-600 font-tamil">பயிர் நோய் பகுப்பாய்வு</p>
         <p className="text-sm sm:text-base text-gray-500 mt-2">Upload a photo of your crop to detect diseases and get treatment recommendations</p>
       </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { CloudIcon, SunIcon, EyeDropperIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
+import { CloudIcon, SunIcon, EyeDropperIcon, ArrowPathIcon, BeakerIcon, EyeIcon, FireIcon } from '@heroicons/react/24/outline'
 
 interface WeatherData {
   temperature: number
@@ -26,6 +26,7 @@ export default function WeatherPage() {
   const [recommendations, setRecommendations] = useState<WeatherRecommendation[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [language, setLanguage] = useState<'en' | 'ta'>('en')
+  const [resolvedLocation, setResolvedLocation] = useState('')
 
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
@@ -50,6 +51,7 @@ export default function WeatherPage() {
         setWeather(data.weather)
         setRecommendations(data.recommendations)
         setLocation(data.location)
+        setResolvedLocation(data.location)
       }
     } catch (error) {
       console.error('Weather fetch error:', error)
@@ -69,6 +71,7 @@ export default function WeatherPage() {
       if (data.success) {
         setWeather(data.weather)
         setRecommendations(data.recommendations)
+        setResolvedLocation(data.location)
       }
     } catch (error) {
       console.error('Weather fetch error:', error)
@@ -93,6 +96,15 @@ export default function WeatherPage() {
       low: 'bg-green-100 text-green-800'
     }
     return colors[priority as keyof typeof colors] || 'bg-gray-100 text-gray-800'
+  }
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'Temperature': return <FireIcon className="w-6 h-6 text-orange-500" />
+      case 'Humidity': return <BeakerIcon className="w-6 h-6 text-blue-500" />
+      case 'Wind': return <ArrowPathIcon className="w-6 h-6 text-gray-500" />
+      default: return <EyeIcon className="w-6 h-6 text-green-500" />
+    }
   }
 
   return (
@@ -135,6 +147,10 @@ export default function WeatherPage() {
       {weather && (
         <>
           {/* Current Weather */}
+          <div className="flex items-center gap-2 mb-4">
+            <CloudIcon className="w-5 h-5 text-blue-500" />
+            <span className="text-gray-700 font-medium">Showing weather for: <span className="text-blue-700">{resolvedLocation}</span></span>
+          </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
             <div className="card text-center p-4">
               <SunIcon className="w-8 h-8 sm:w-12 sm:h-12 text-orange-500 mx-auto mb-2 sm:mb-3" />
@@ -184,7 +200,7 @@ export default function WeatherPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-2">
-                          <span className="text-2xl">{rec.icon}</span>
+                          {getCategoryIcon(rec.category)}
                           <h3 className="text-lg font-semibold text-gray-900">{rec.title}</h3>
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityBadge(rec.priority)}`}>
                             {rec.priority.charAt(0).toUpperCase() + rec.priority.slice(1)} Priority

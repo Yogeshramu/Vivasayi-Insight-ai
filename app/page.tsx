@@ -57,7 +57,7 @@ export default function HomePage() {
           விவசாயிகளுக்கான AI உதவி அமைப்பு
         </p>
         <p className="text-sm sm:text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">
-          Get instant crop disease diagnosis, agricultural advice, soil predictions,
+          Get instant leaf disease diagnosis, agricultural advice, soil predictions,
           and weather recommendations - all powered by AI
         </p>
       </div>
@@ -96,7 +96,7 @@ export default function HomePage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
         <div className="text-center p-5 bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="text-2xl sm:text-3xl font-bold text-primary-600 mb-1 sm:mb-2">38+</div>
-          <div className="text-sm sm:text-base text-gray-600">Crop Diseases</div>
+          <div className="text-sm sm:text-base text-gray-600">Leaf Diseases</div>
           <div className="text-xs text-gray-500 font-tamil mt-1">38+ பயிர் நோய்கள்</div>
         </div>
         <div className="text-center p-5 bg-white rounded-xl shadow-sm border border-gray-100">

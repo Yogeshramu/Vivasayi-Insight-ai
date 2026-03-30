@@ -43,7 +43,7 @@ CRITICAL INSTRUCTIONS:
 export async function POST(request: NextRequest) {
   try {
     const contentType = request.headers.get('content-type') || ''
-    let message = '', language = '', userId: string | null = '', userLoc = '', file: File | null = null, history = []
+    let message = '', language = '', userId: string | null = '', userLoc = '', file: File | null = null, history = [], sessionId: string | null = null
 
     if (contentType.includes('multipart/form-data')) {
       const formData = await request.formData()
@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
       language = formData.get('language') as string || ''
       userId = formData.get('userId') as string || ''
       userLoc = formData.get('location') as string || ''
+      sessionId = formData.get('sessionId') as string || null
       file = formData.get('image') as File
       try {
         const h = formData.get('history') as string
@@ -160,16 +161,27 @@ export async function POST(request: NextRequest) {
     }
 
     if (userId) {
-      await prisma.chatSession.create({
-        data: {
-          userId,
-          messages: [
-            { role: 'user', content: message || "Image analysis request", timestamp: new Date(), ...(savedImagePath && { image: savedImagePath }) },
-            { role: 'assistant', content: response, timestamp: new Date() }
-          ],
-          language: detectedLanguage
+      const newMessages = [
+        { role: 'user', content: message || 'Image analysis request', timestamp: new Date(), ...(savedImagePath && { image: savedImagePath }) },
+        { role: 'assistant', content: response, timestamp: new Date() }
+      ]
+
+      if (sessionId) {
+        const existing = await prisma.chatSession.findFirst({ where: { id: sessionId, userId } })
+        if (existing) {
+          const updatedMessages = [...(existing.messages as any[]), ...newMessages]
+          await prisma.chatSession.update({
+            where: { id: sessionId },
+            data: { messages: updatedMessages }
+          }).catch(() => {})
+          return NextResponse.json({ success: true, response, detectedLanguage, sessionId })
         }
-      }).catch(e => { })
+      }
+
+      const created = await prisma.chatSession.create({
+        data: { userId, messages: newMessages, language: detectedLanguage }
+      }).catch(() => null)
+      return NextResponse.json({ success: true, response, detectedLanguage, sessionId: created?.id ?? null })
     }
 
     return NextResponse.json({ success: true, response, detectedLanguage })
