@@ -89,8 +89,8 @@ export default function CropAnalysisPage() {
     <div className="max-w-6xl mx-auto px-4">
       <div className="text-center mb-10">
         <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">Leaf Disease Analysis</h1>
-        <p className="text-lg text-gray-600 font-tamil">பயிர் நோய் பகுப்பாய்வு</p>
-        <p className="text-sm sm:text-base text-gray-500 mt-2">Upload a photo of your crop to detect diseases and get treatment recommendations</p>
+        <p className="text-lg text-gray-600 font-tamil">இலை நோய் பகுப்பாய்வு</p>
+        <p className="text-sm sm:text-base text-gray-500 mt-2">Upload a photo of your leaf to detect diseases and get treatment recommendations</p>
       </div>
 
       <div className="flex flex-col lg:grid lg:grid-cols-3 gap-8">
@@ -128,8 +128,8 @@ export default function CropAnalysisPage() {
                     className="border-2 border-dashed border-gray-200 rounded-2xl p-10 text-center cursor-pointer hover:border-primary-500 hover:bg-primary-50/30 transition-all duration-300 group"
                   >
                     <PhotoIcon className="w-14 h-14 text-gray-300 mx-auto mb-4 group-hover:text-primary-400 group-hover:scale-110 transition-all" />
-                    <p className="text-gray-600 font-medium mb-1">Select Crop Image</p>
-                    <p className="text-xs text-gray-400 font-tamil">பயிர் படத்தைத் தேர்ந்தெடுக்கவும்</p>
+                    <p className="text-gray-600 font-medium mb-1">Select leaf Image</p>
+                    <p className="text-xs text-gray-400 font-tamil">இலை சித்திரத்தை தேர்வு செய்க</p>
                   </div>
                 )}
 
