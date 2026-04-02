@@ -40,6 +40,8 @@ export default function ChatPage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [isListening, setIsListening] = useState(false)
+  const [isTranscribing, setIsTranscribing] = useState(false)
+  const [pendingAudio, setPendingAudio] = useState<{ blob: Blob; mimeType: string } | null>(null)
   const [history, setHistory] = useState<ChatSession[]>([])
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [activeChatId, setActiveChatId] = useState<string | null>(null)
@@ -49,9 +51,8 @@ export default function ChatPage() {
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const recognitionRef = useRef<any>(null)
-  const isListeningRef = useRef(false)
-  const baseTextRef = useRef('')
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const audioChunksRef = useRef<Blob[]>([])
   const skipScrollRef = useRef(false)
 
   useEffect(() => {
@@ -62,24 +63,7 @@ export default function ChatPage() {
 
   useEffect(() => { if (session) fetchHistory() }, [session])
 
-  useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [])
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-    if (!SR) return
-    const rec = new SR()
-    rec.continuous = true; rec.interimResults = true
-    rec.onresult = (e: any) => {
-      let t = ''
-      for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript
-      setInput(baseTextRef.current + t)
-    }
-    rec.onend = () => { if (isListeningRef.current) rec.start() }
-    recognitionRef.current = rec
-  }, [])
+  useEffect(() => { window.scrollTo(0, 0) }, [])
 
   const fetchHistory = async () => {
     try {
@@ -115,13 +99,56 @@ export default function ChatPage() {
     })
   }
 
-  const toggleListening = () => {
+  const toggleListening = async () => {
     if (isListening) {
-      isListeningRef.current = false; setIsListening(false)
-      recognitionRef.current?.stop(); baseTextRef.current = ''
-    } else {
-      baseTextRef.current = input; isListeningRef.current = true
-      setIsListening(true); recognitionRef.current?.start()
+      // Stop recording — mediaRecorder.stop() triggers onstop which sends to Whisper
+      mediaRecorderRef.current?.stop()
+      setIsListening(false)
+      return
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      audioChunksRef.current = []
+
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4'
+      const recorder = new MediaRecorder(stream, { mimeType })
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data)
+      }
+
+      recorder.onstop = () => {
+        stream.getTracks().forEach(t => t.stop())
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType })
+        if (audioBlob.size < 1000) return
+        setPendingAudio({ blob: audioBlob, mimeType })
+      }
+
+      recorder.start()
+      mediaRecorderRef.current = recorder
+      setIsListening(true)
+    } catch (err) {
+      console.error('Mic error:', err)
+      alert('Microphone access denied. Please allow mic access and try again.')
+    }
+  }
+
+  const transcribePending = async () => {
+    if (!pendingAudio) return
+    setIsTranscribing(true)
+    try {
+      const fd = new FormData()
+      fd.append('audio', pendingAudio.blob, `recording.${pendingAudio.mimeType.includes('webm') ? 'webm' : 'mp4'}`)
+      fd.append('language', language)
+      const res = await fetch('/api/transcribe', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (data.success && data.text) setInput(prev => (prev ? prev + ' ' : '') + data.text.trim())
+    } catch (err) {
+      console.error('Transcription error:', err)
+    } finally {
+      setIsTranscribing(false)
+      setPendingAudio(null)
     }
   }
 
@@ -133,7 +160,7 @@ export default function ChatPage() {
     }
     setMessages(prev => [...prev, userMsg])
     const curInput = input, curImage = selectedImage
-    setInput(''); baseTextRef.current = ''
+    setInput('')
     setSelectedImage(null); setImagePreview(null)
     setIsLoading(true)
     if (textareaRef.current) textareaRef.current.style.height = 'auto'
@@ -166,7 +193,6 @@ export default function ChatPage() {
     const first = chat.messages.find((m: any) => m.role === 'user')
     const raw = first?.content?.trim()
     if (!raw) return 'New conversation'
-    // Capitalize and clean up
     const cleaned = raw.replace(/[\r\n]+/g, ' ').trim()
     return cleaned.length > 36 ? cleaned.slice(0, 36) + '…' : cleaned
   }
@@ -200,15 +226,14 @@ export default function ChatPage() {
   return (
     <div className="flex overflow-hidden -mx-4 -mt-4 md:mx-auto md:mt-0 md:mb-0 md:rounded-2xl md:shadow-2xl md:border md:border-gray-200 md:max-w-5xl" style={{ height: 'calc(100dvh - 64px)', maxHeight: '680px' }}>
 
-      {/* ── DARK SIDEBAR ── */}
+      {/* ── SIDEBAR ── */}
       <aside className={`
         flex-col bg-white border-r border-gray-200 shrink-0 transition-all duration-300 overflow-hidden
         fixed inset-y-0 left-0 z-40 w-64
         md:relative md:z-auto md:inset-auto
         ${sidebarOpen ? 'flex translate-x-0 md:w-60' : 'hidden md:flex md:w-0'}
       `}>
-
-          <div className="flex items-center justify-between px-3 pt-4 pb-2 shrink-0">
+        <div className="flex items-center justify-between px-3 pt-4 pb-2 shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-md bg-primary-600 flex items-center justify-center">
               <ChatBubbleLeftRightIcon className="w-3.5 h-3.5 text-white" />
@@ -221,7 +246,6 @@ export default function ChatPage() {
           </button>
         </div>
 
-        {/* History */}
         <div className="flex-1 overflow-y-auto px-3 custom-scrollbar">
           {!session ? (
             <div className="mt-6 mx-1 p-4 rounded-xl bg-white/5 border border-white/10">
@@ -242,18 +266,12 @@ export default function ChatPage() {
                   const isActive = activeChatId === chat.id
                   return (
                     <button key={chat.id} onClick={() => loadChat(chat)}
-                      className={`w-full text-left px-3 py-2.5 rounded-xl transition-colors group ${
-                        isActive ? 'bg-primary-50' : 'hover:bg-gray-100'
-                      }`}>
+                      className={`w-full text-left px-3 py-2.5 rounded-xl transition-colors group ${isActive ? 'bg-primary-50' : 'hover:bg-gray-100'}`}>
                       <div className="flex items-start justify-between gap-2">
-                        <p className={`text-xs font-medium truncate leading-snug ${
-                          isActive ? 'text-primary-700' : 'text-gray-700 group-hover:text-gray-900'
-                        }`}>
+                        <p className={`text-xs font-medium truncate leading-snug ${isActive ? 'text-primary-700' : 'text-gray-700 group-hover:text-gray-900'}`}>
                           {getChatTitle(chat)}
                         </p>
-                        {hasImage && (
-                          <span className="shrink-0 text-[9px] bg-primary-100 text-primary-600 px-1.5 py-0.5 rounded-full font-medium">📷</span>
-                        )}
+                        {hasImage && <span className="shrink-0 text-[9px] bg-primary-100 text-primary-600 px-1.5 py-0.5 rounded-full font-medium">📷</span>}
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-[10px] text-gray-400">{formatDate(chat.createdAt)}</span>
@@ -268,7 +286,6 @@ export default function ChatPage() {
           )}
         </div>
 
-        {/* User */}
         <div className="px-3 py-3 border-t border-gray-200 shrink-0">
           <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl bg-primary-50">
             <div className="w-7 h-7 rounded-full bg-primary-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
@@ -282,15 +299,11 @@ export default function ChatPage() {
         </div>
       </aside>
 
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-30 bg-black/50 md:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
+      {sidebarOpen && <div className="fixed inset-0 z-30 bg-black/50 md:hidden" onClick={() => setSidebarOpen(false)} />}
 
       {/* ── MAIN AREA ── */}
       <div className="flex-1 flex flex-col min-w-0 bg-white">
 
-        {/* Slim top bar */}
         <div className="flex items-center gap-3 px-4 py-2 border-b border-gray-100 shrink-0">
           <button onClick={() => setSidebarOpen(o => !o)}
             className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 transition-colors shrink-0">
@@ -299,9 +312,7 @@ export default function ChatPage() {
           <p className="text-sm font-semibold text-gray-800">AgriPulse</p>
           <div className="flex items-center gap-1.5 ml-auto">
             <button onClick={fetchLocation}
-              className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-colors ${
-                location ? 'text-primary-600 bg-primary-50' : 'text-gray-400 hover:bg-gray-100'
-              }`}>
+              className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-colors ${location ? 'text-primary-600 bg-primary-50' : 'text-gray-400 hover:bg-gray-100'}`}>
               <MapPinIcon className="w-3.5 h-3.5" />
               <span className="hidden sm:inline max-w-[70px] truncate">{location || 'Location'}</span>
             </button>
@@ -317,13 +328,11 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* Messages — centered like ChatGPT */}
         <div ref={messagesContainerRef} className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
             {messages.map((msg, i) => (
               <div key={i} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                 {msg.role === 'user' ? (
-                  /* User bubble */
                   <div className="max-w-[80%]">
                     <div className="bg-gray-100 text-gray-900 px-4 py-2.5 rounded-2xl rounded-tr-sm text-sm leading-relaxed">
                       {msg.image && (
@@ -338,7 +347,6 @@ export default function ChatPage() {
                     </p>
                   </div>
                 ) : (
-                  /* AI response — no bubble, just text like ChatGPT */
                   <div className="w-full">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-6 h-6 rounded-full bg-primary-600 flex items-center justify-center shrink-0">
@@ -376,7 +384,6 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* Input — ChatGPT style */}
         <div className="px-4 pb-4 pt-2 shrink-0">
           <div className="max-w-2xl mx-auto">
             {imagePreview && (
@@ -396,11 +403,22 @@ export default function ChatPage() {
                 className="text-gray-400 hover:text-gray-600 transition-colors shrink-0 mb-0.5">
                 <PhotoIcon className="w-5 h-5" />
               </button>
-              <button onClick={toggleListening}
-                className={`relative shrink-0 mb-0.5 transition-colors ${isListening ? 'text-red-500' : 'text-gray-400 hover:text-gray-600'}`}>
-                {isListening && <span className="absolute inset-0 rounded-full bg-red-400 animate-ping opacity-20" />}
-                <MicrophoneIcon className="w-5 h-5 relative z-10" />
-              </button>
+
+              {pendingAudio ? (
+                <button onClick={transcribePending} disabled={isTranscribing}
+                  className="relative shrink-0 mb-0.5 text-green-600 hover:text-green-700 transition-colors"
+                  title="Send for transcription">
+                  {isTranscribing && <span className="absolute inset-0 rounded-full bg-green-400 animate-ping opacity-20" />}
+                  <PaperAirplaneIcon className="w-5 h-5 relative z-10" />
+                </button>
+              ) : (
+                <button onClick={toggleListening} disabled={isTranscribing}
+                  className={`relative shrink-0 mb-0.5 transition-colors ${isListening ? 'text-red-500' : 'text-gray-400 hover:text-gray-600'}`}
+                  title={isListening ? 'Stop recording' : 'Start recording'}>
+                  {isListening && <span className="absolute inset-0 rounded-full bg-red-400 animate-ping opacity-20" />}
+                  <MicrophoneIcon className="w-5 h-5 relative z-10" />
+                </button>
+              )}
 
               <textarea
                 ref={textareaRef}
@@ -412,7 +430,7 @@ export default function ChatPage() {
                   t.style.height = `${Math.min(t.scrollHeight, 120)}px`
                 }}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }}
-                placeholder={language === 'en' ? 'Ask anything...' : 'கேளுங்கள்...'}
+                placeholder={isListening ? '🎙️ Recording... click mic to stop' : isTranscribing ? 'Transcribing...' : pendingAudio ? '✅ Recording ready — click ▶ to transcribe' : language === 'en' ? 'Ask anything...' : 'கேளுங்கள்...'}
                 className={`flex-1 bg-transparent outline-none resize-none text-sm text-gray-800 placeholder-gray-400 py-0.5 max-h-28 ${language === 'ta' ? 'font-tamil' : ''}`}
                 rows={1}
                 disabled={isLoading}

@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
     let prediction;
     try {
       // Use Groq for DYNAMIC recommendations
+      const lang = language === 'ta' ? 'Tamil language (தமிழில் மட்டும் பதில் தரவும்)' : 'English'
       const systemPrompt = `You are a soil expert. Provide a concise agricultural recommendation for a farmer.
       Current Conditions:
       - Temperature: ${temp}°C
@@ -34,11 +35,12 @@ export async function POST(request: NextRequest) {
       - Crop: ${cropType}
       - Estimated Soil Moisture: ${moistureLevel}%
       
+      IMPORTANT: Respond ONLY in ${lang}.
       Respond only in JSON:
       {
-        "recommendation": "Recommendation in ${language === 'ta' ? 'Tamil' : 'English'}",
+        "recommendation": "2-3 sentence recommendation in ${lang}",
         "irrigation_needed": boolean,
-        "next_check": "Timeframe in ${language === 'ta' ? 'Tamil' : 'English'}"
+        "next_check": "Timeframe in ${lang}"
       }`
 
       const completion = await groq.chat.completions.create({

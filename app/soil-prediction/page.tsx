@@ -25,7 +25,7 @@ export default function SoilPredictionPage() {
   const { data: session } = useSession()
   const [prediction, setPrediction] = useState<SoilPrediction | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [language, setLanguage] = useState<'en' | 'ta'>('en')
+  const [language, setLanguage] = useState<'en' | 'ta'>('ta')
   const [history, setHistory] = useState<any[]>([])
 
   const cropTypes = [
@@ -186,7 +186,7 @@ export default function SoilPredictionPage() {
                 <div className="bg-gray-50 p-4 rounded-xl text-left border border-gray-100">
                   <p className="font-bold text-gray-900 mb-2 flex items-center">
                     <span className="w-2 h-2 bg-primary-500 rounded-full mr-2"></span>
-                    Recommendation:
+                    {language === 'ta' ? 'பரிந்துரை:' : 'Recommendation:'}
                   </p>
                   <p className="text-gray-600 text-sm leading-relaxed">{prediction.recommendation}</p>
                 </div>

@@ -31,7 +31,7 @@ async function getWeatherDataForPrompt(location: string) {
   } catch (e) { return null }
 }
 
-const AGRICULTURAL_PROMPT = `You are a highly capable AI Agricultural Advisor. 
+const AGRICULTURAL_PROMPT_EN = `You are a highly capable AI Agricultural Advisor. 
 
 CRITICAL INSTRUCTIONS:
 1. If an [IMAGE ANALYSIS RESULT] is provided, YOU MUST ACKNOWLEDGE IT AS TRUTH. 
@@ -39,6 +39,15 @@ CRITICAL INSTRUCTIONS:
 3. Your job is to explain the FOUND disease/condition and provide a treatment plan.
 4. Keep advice actionable, farmer-friendly, and scientifically sound.
 5. If no weather is provided, give general advice. If weather is provided, use it contextually.`
+
+const AGRICULTURAL_PROMPT_TA = `நீங்கள் ஒரு திறமையான AI விவசாய ஆலோசகர். 
+
+முக்கியமான வழிமுறைகள்:
+1. படம் பதிவேற்றப்பட்டிருந்தால், அதை பகுப்பாய்வு செய்து நோய் அல்லது நிலையை விளக்கவும்.
+2. "என்னிடம் படம் இல்லை" என்று சொல்லாதீர்கள். கணினி ஏற்கனவே அதை பகுப்பாய்வு செய்துள்ளது.
+3. நோய்/நிலையை விளக்கி சிகிச்சை திட்டம் வழங்கவும்.
+4. அனைத்து பதில்களையும் தமிழிலேயே தரவும் (RESPOND ONLY IN TAMIL).
+5. விவசாயிக்கு எளிதில் புரியும் வகையில் நடைமுறை ஆலோசனை தரவும்.`
 
 export async function POST(request: NextRequest) {
   try {
@@ -97,7 +106,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const detectedLanguage = language || (isTamil(message) ? 'ta' : 'en')
+    const detectedLanguage = isTamil(message) ? 'ta' : (language || 'en')
     let processedMessage = message
 
     if (detectedLanguage === 'ta' && message) {
@@ -123,7 +132,7 @@ export async function POST(request: NextRequest) {
     let response: string
     try {
       const userContent: any[] = [
-        { type: "text", text: `${dynamicPrompt}\nFarmer Query: ${processedMessage || "Please analyze this crop photo."}` }
+        { type: "text", text: `${dynamicPrompt}\n${detectedLanguage === 'ta' ? 'விவசாயி கேள்வி:' : 'Farmer Query:'} ${detectedLanguage === 'ta' ? (message || 'இந்த பயிர் படத்தை பகுப்பாய்வு செய்யவும்.') : (processedMessage || 'Please analyze this crop photo.')}` }
       ]
 
       if (file && file.size > 0) {
@@ -137,9 +146,11 @@ export async function POST(request: NextRequest) {
         })
       }
 
+      const systemPrompt = detectedLanguage === 'ta' ? AGRICULTURAL_PROMPT_TA : AGRICULTURAL_PROMPT_EN
+
       const completion = await groq.chat.completions.create({
         messages: [
-          { role: 'system', content: AGRICULTURAL_PROMPT },
+          { role: 'system', content: systemPrompt },
           ...history?.slice(-3).map((m: any) => ({ role: m.role, content: m.content })) || [],
           { role: 'user', content: userContent }
         ],
@@ -150,14 +161,19 @@ export async function POST(request: NextRequest) {
       response = completion.choices[0]?.message?.content || 'Service error.'
     } catch (e) {
       console.error("Groq Vision Error:", e)
-      response = "I processed the data but encountered an AI error. Please try again."
+      response = detectedLanguage === 'ta'
+        ? 'தரவை செயலாக்கினேன், ஆனால் AI பிழை ஏற்பட்டது. மீண்டும் முயற்சிக்கவும்.'
+        : 'I processed the data but encountered an AI error. Please try again.'
     }
 
     if (detectedLanguage === 'ta') {
-      try {
-        const transRes = await translate(response, { from: 'en', to: 'ta' })
-        response = transRes.text
-      } catch (e) { }
+      // Only translate if response appears to still be in English (fallback)
+      if (!/[\u0B80-\u0BFF]/.test(response)) {
+        try {
+          const transRes = await translate(response, { from: 'en', to: 'ta' })
+          response = transRes.text
+        } catch (e) { }
+      }
     }
 
     if (userId) {
