@@ -18,10 +18,10 @@ export default function HomePage() {
       color: 'bg-blue-500'
     },
     {
-      title: 'Crop Analysis',
-      titleTamil: 'பயிர் பகுப்பாய்வு',
-      description: 'Upload crop images for disease detection',
-      descriptionTamil: 'நோய் கண்டறிதலுக்காக பயிர் படங்களை பதிவேற்றவும்',
+      title: 'Leaf Disease Detection',
+      titleTamil: ' இலை நோய் கண்டறிதல்',
+      description: 'Upload leaf images for disease detection',
+      descriptionTamil: 'நோய் கண்டறிதலுக்காக இலை படங்களை பதிவேற்றவும்',
       href: '/crop-analysis',
       icon: CameraIcon,
       color: 'bg-green-500'
